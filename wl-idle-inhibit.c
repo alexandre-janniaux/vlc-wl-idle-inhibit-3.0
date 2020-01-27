@@ -44,9 +44,13 @@ struct vlc_inhibit_sys
     struct zwp_idle_inhibitor_v1 *inhibitor;
 };
 
+static vout_window_t *GetWindow(vlc_inhibit_t *ih)
+{
+    return (vout_window_t *)ih->obj.parent;
+}
 static void Inhibit (vlc_inhibit_t *ih, unsigned mask)
 {
-    vout_window_t *wnd = vlc_inhibit_GetWindow(ih);
+    vout_window_t *wnd = GetWindow(ih);
     vlc_inhibit_sys_t *sys = ih->p_sys;
     bool suspend = (mask & VLC_INHIBIT_DISPLAY) != 0;
 
@@ -88,7 +92,7 @@ static const struct wl_registry_listener registry_cbs =
 static int Open(vlc_object_t *obj)
 {
     vlc_inhibit_t *ih = (vlc_inhibit_t *)obj;
-    vout_window_t *wnd = vlc_inhibit_GetWindow(ih);
+    vout_window_t *wnd = GetWindow(ih);
 
     if (wnd->type != VOUT_WINDOW_TYPE_WAYLAND)
         return VLC_EGENERIC;
@@ -132,7 +136,7 @@ static void Close(vlc_object_t *obj)
 {
     vlc_inhibit_t *ih = (vlc_inhibit_t *)obj;
     vlc_inhibit_sys_t *sys = ih->p_sys;
-    vout_window_t *wnd = vlc_inhibit_GetWindow(ih);
+    vout_window_t *wnd = GetWindow(ih);
 
     if (sys->inhibitor != NULL)
         zwp_idle_inhibitor_v1_destroy(sys->inhibitor);
@@ -143,8 +147,8 @@ static void Close(vlc_object_t *obj)
 }
 
 vlc_module_begin()
-    set_shortname(N_("WL idle"))
-    set_description(N_("Wayland idle inhibitor"))
+    set_shortname("WL idle")
+    set_description("Wayland idle inhibitor")
     set_category(CAT_ADVANCED)
     set_subcategory(SUBCAT_ADVANCED_MISC)
     set_capability("inhibit", 30)
